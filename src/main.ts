@@ -1,12 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '@/app.module';
-import { port } from '@/config/env.config';
 import { ValidationPipe } from '@nestjs/common';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { port } from './config/env.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
-  app.enableCors();
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.TCP,
+      options: {
+        host: 'localhost',
+        port: port,
+      },
+    },
+  );
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -16,6 +24,6 @@ async function bootstrap() {
       forbidUnknownValues: true,
     }),
   );
-  await app.listen(port);
+  await app.listen();
 }
 bootstrap();
